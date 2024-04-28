@@ -3,13 +3,10 @@ using {db} from '../db/schema';
 service Contracts {
     entity RecordSet {
         key ID: Integer;
-        whenSigned : Date;
-        Amount : Decimal;
-        ProductName : String;
-        RevenueRecognitions : many { ID: Integer; amount: Decimal; date: Date; };
-    } actions {
-        function requestData(ID: Integer) returns RecordSet;
-    }
+        contracts : Composition of many db.Contracts;
+        products : Composition of many db.Products;
+        revenueRecognitions : Composition of many db.RevenueRecognitions;
+    } 
 }
 
 service TableGateway {

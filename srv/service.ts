@@ -3,7 +3,6 @@ import * as cds from "@sap/cds";
 export class Contracts extends cds.ApplicationService {
   init() {
     this.on("READ", "RecordSet", getData);
-    this.on("requestData", getData);
     return super.init();
   }
 }
@@ -28,10 +27,9 @@ async function getData(_req: any): Promise<RecordSet[]> {
     );
     recordset.push({
       ID: contract.ID,
-      whenSigned: contract.whenSigned,
-      Amount: contract.Amount,
-      ProductName: product?.name,
-      RevenueRecognitions: revenueRecognitions,
+      contracts: [contract],
+      products: [product],
+      revenueRecognitions: revenueRecognitions,
     });
   }
   console.log(_req);
@@ -40,10 +38,9 @@ async function getData(_req: any): Promise<RecordSet[]> {
 
 type RecordSet = {
   ID: number;
-  whenSigned: Date;
-  Amount: number;
-  ProductName: String | undefined;
-  RevenueRecognitions: RevenueRecognition[];
+  contracts: Contract[];
+  products: (Product | undefined) [] | [];
+  revenueRecognitions: RevenueRecognition[];
 };
 
 export class TableModule<T> {
