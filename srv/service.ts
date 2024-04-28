@@ -13,23 +13,18 @@ async function getData(_req: any): Promise<RecordSet[]> {
   const contracts = await SELECT.from(Contracts);
   const products = await SELECT.from(Products);
   const revenueRecognitions = await SELECT.from(RevenueRecognitions);
-  const dataset: DataSet = {
-    Contracts: contracts,
-    Products: products,
-    RevenueRecognitions: revenueRecognitions,
-  };
 
   let recordset = [];
-  for (let contract of dataset.Contracts) {
-    let product = dataset.Products.find((p) => p.ID === contract.product_ID);
-    let revenueRecognitions = dataset.RevenueRecognitions.filter(
-      (r) => r.contract_ID === contract.ID,
+  for (let aContract of contracts) {
+    let aProduct = products.find((p: Product) => p.ID === aContract.product_ID);
+    let subsetOfRevenueRecognitions = revenueRecognitions.filter(
+      (r: RevenueRecognition) => r.contract_ID === aContract.ID,
     );
     recordset.push({
-      ID: contract.ID,
-      contracts: [contract],
-      products: [product],
-      revenueRecognitions: revenueRecognitions,
+      ID: aContract.ID,
+      contracts: [aContract],
+      products: [aProduct],
+      revenueRecognitions: subsetOfRevenueRecognitions,
     });
   }
   console.log(_req);
@@ -39,7 +34,7 @@ async function getData(_req: any): Promise<RecordSet[]> {
 type RecordSet = {
   ID: number;
   contracts: Contract[];
-  products: (Product | undefined) [] | [];
+  products: (Product | undefined)[] | [];
   revenueRecognitions: RevenueRecognition[];
 };
 
@@ -51,9 +46,6 @@ export class TableModule<T> {
   public get table(): [T] {
     return this._table;
   }
-  // public find(contractID: number) : cds.CQN {
-  //     return SELECT.from(this._table).where(`ID = ${contractID}`);
-  // }
 }
 
 export type Contract = {
