@@ -32,40 +32,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractService = void 0;
+exports.TableGateway = void 0;
 const cds = __importStar(require("@sap/cds"));
-class ContractService extends cds.ApplicationService {
-    init() {
-        this.on("READ", "Contracts", getContracts);
-        this.on("READ", "Products", getProducts);
-        this.on("READ", "RevenueRecognitions", getRevenueRecognitions);
-        return super.init();
+class TableGateway extends cds.ApplicationService {
+    find(contractID) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const contracts = yield SELECT.from("db.Contracts").where(`ID = ${contractID}`);
+            const products = yield SELECT.from("db.Contracts")
+                .where(`ID = ${contractID}`)
+                .columns("product.ID as ID", "product.name as name", "product.type as type");
+            const revenueRecognitions = yield SELECT.from("db.RevenueRecognitions").where(`contract.ID = ${contractID}`);
+            const recordset = {
+                Contracts: contracts,
+                Products: products,
+                RevenueRecognitions: revenueRecognitions,
+            };
+            return recordset;
+        });
     }
 }
-exports.ContractService = ContractService;
-function getContracts(req) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const gw = yield cds.connect.to("TableGateway");
-        const [args] = req.params.length === 0 ? [1] : req.params;
-        const recordset = yield gw.send("find", { contractID: args });
-        return recordset.Contracts;
-    });
-}
-function getProducts(req) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const gw = yield cds.connect.to("TableGateway");
-        const [args] = req.params.length === 0 ? [1] : req.params;
-        const recordset = yield gw.send("find", { contractID: args });
-        console.log(recordset);
-        return recordset.Products;
-    });
-}
-function getRevenueRecognitions(req) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const gw = yield cds.connect.to("TableGateway");
-        const [args] = req.params.length === 0 ? [1] : req.params;
-        const recordset = yield gw.send("find", { contractID: args });
-        console.log(recordset);
-        return recordset.RevenueRecognitions;
-    });
-}
+exports.TableGateway = TableGateway;
