@@ -36,10 +36,19 @@
     "test": "jest",
     "watch-list_of_contracts": "cds watch --open list_of_contracts/webapp/index.html?sap-ui-xx-viewCache=false",
     "watch-basic_view": "cds watch --open basic_view/webapp/index.html?sap-ui-xx-viewCache=false",
-    "watch-contracts": "cds watch --open contracts/webapp/index.html?sap-ui-xx-viewCache=false"
+    "watch-contracts": "cds watch --open contracts/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-contract_service": "cds watch --open contract_service/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-main": "cds watch --open main/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-main_new": "cds watch --open main_new/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-project1": "cds watch --open project1/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-project2": "cds watch --open project2/webapp/index.html?sap-ui-xx-viewCache=false"
   },
   "sapux": [
     "app/list_of_contracts",
-    "app/contracts"
+    "app/contracts",
+    "app/contract_service",
+    "app/main",
+    "app/main_new",
+    "app/project2"
   ]
 }
