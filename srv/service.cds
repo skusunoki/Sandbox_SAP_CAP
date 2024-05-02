@@ -3,8 +3,6 @@ using {db} from '../db/schema';
 service RevenueCalculationService {
     entity Contracts as projection on db.Contracts 
     actions {
-            action calculateRecognitions(contractID: UUID) ;
+            action calculateRecognitions(contractID: Integer) ;
     }
-    entity RevenueRecognitions as projection on db.RevenueRecognitions
-
 }

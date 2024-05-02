@@ -7,11 +7,12 @@
   "private": true,
   "dependencies": {
     "@sap/cds": "^7",
+    "axios": "^1.6.8",
     "express": "^4"
   },
   "devDependencies": {
     "@cap-js/sqlite": "^1",
-    "@sap/ux-specification": "^1.120.8",
+    "@sap/ux-specification": "^1.84.87",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.7",
     "@types/power-assert": "^1.5.12",

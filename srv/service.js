@@ -12,65 +12,71 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RevenueCalculationService = void 0;
+exports.RevenueCalculationService = exports.Contracts = void 0;
 const cds_1 = __importDefault(require("@sap/cds"));
 const power_assert_1 = __importDefault(require("power-assert"));
-class TableModule {
+class Contracts {
     constructor(_dataset) {
         this._dataset = _dataset;
         this._dataset = _dataset;
+        this._index = 0;
     }
     calculateRecognitions(contractID) {
-        const contractRow = this._dataset.find((contract) => contract.ID == contractID);
-        (0, power_assert_1.default)(contractRow !== undefined, `Contract with ID ${contractID} not found`);
-        if ((contractRow === null || contractRow === void 0 ? void 0 : contractRow.revenueRecognitions) == undefined)
+        this._index = this._dataset.findIndex((contract) => contract.ID == contractID);
+        const contractRow = this._dataset[this._index];
+        if (contractRow === undefined)
             return;
-        if ((contractRow === null || contractRow === void 0 ? void 0 : contractRow.product) == undefined)
+        if (contractRow.product === undefined)
             return;
-        if ((contractRow === null || contractRow === void 0 ? void 0 : contractRow.Amount) == undefined)
+        if (contractRow.amount === undefined)
             return;
-        const amount = contractRow.Amount;
-        let rr = contractRow === null || contractRow === void 0 ? void 0 : contractRow.revenueRecognitions;
-        const product = contractRow === null || contractRow === void 0 ? void 0 : contractRow.product;
-        console.log(product);
+        const amount = contractRow.amount;
+        const product = contractRow.product;
         if (contractRow.product.type === "WP") {
-            rr = [];
+            let rr = [];
             rr.push({
                 items: cds_1.default.utils.uuid(),
                 amount: amount,
-                date: contractRow === null || contractRow === void 0 ? void 0 : contractRow.whenSigned,
-                contract_ID: contractRow === null || contractRow === void 0 ? void 0 : contractRow.ID,
+                date: contractRow.whenSigned,
+                contract_ID: contractRow.ID,
             });
-            this._dataset[0].revenueRecognitions = rr;
+            this._dataset[this._index].revenueRecognitions = [...rr];
         }
-        if ((product === null || product === void 0 ? void 0 : product.type) == "SS") {
-            rr = [];
-            const allocation = this.allocate(amount, 3);
+        if (contractRow.product.type === "SS") {
+            let rr = [];
+            const alloc_amount = this.allocate_amount(amount, 3);
+            const alloc_date = this.allocate_date(new Date(contractRow === null || contractRow === void 0 ? void 0 : contractRow.whenSigned), 3);
             rr.push({
                 items: cds_1.default.utils.uuid(),
-                amount: allocation[0],
-                date: contractRow === null || contractRow === void 0 ? void 0 : contractRow.whenSigned,
+                amount: alloc_amount[0],
+                date: alloc_date[0],
                 contract_ID: contractRow === null || contractRow === void 0 ? void 0 : contractRow.ID,
             });
             rr.push({
                 items: cds_1.default.utils.uuid(),
-                amount: allocation[1],
-                date: contractRow === null || contractRow === void 0 ? void 0 : contractRow.whenSigned,
+                amount: alloc_amount[1],
+                date: alloc_date[1],
                 contract_ID: contractRow === null || contractRow === void 0 ? void 0 : contractRow.ID,
             });
             rr.push({
                 items: cds_1.default.utils.uuid(),
-                amount: allocation[2],
-                date: contractRow === null || contractRow === void 0 ? void 0 : contractRow.whenSigned,
+                amount: alloc_amount[2],
+                date: alloc_date[2],
                 contract_ID: contractRow === null || contractRow === void 0 ? void 0 : contractRow.ID,
             });
-            this._dataset[0].revenueRecognitions = rr;
+            this._dataset[this._index].revenueRecognitions = [...rr];
+        }
+        if ((product === null || product === void 0 ? void 0 : product.type) === undefined) {
+            (0, power_assert_1.default)(false, "Product type is not defined");
         }
     }
     get contracts() {
         return this._dataset;
     }
-    allocate(amount, by) {
+    set contracts(contracts) {
+        this._dataset = contracts;
+    }
+    allocate_amount(amount, by) {
         const lowResult = Math.floor((amount / by) * 100) / 100;
         const highResult = lowResult + 0.01;
         const result = [];
@@ -80,19 +86,26 @@ class TableModule {
         }
         return result;
     }
+    allocate_date(date, by) {
+        let rr_date = [];
+        for (let i = 0; i < by; i++) {
+            let rr_date_base = date;
+            rr_date_base.setDate(rr_date_base.getDate() + i * 30);
+            rr_date.push(rr_date_base.toISOString().split("T")[0]);
+        }
+        return rr_date;
+    }
 }
+exports.Contracts = Contracts;
 class RevenueCalculationService extends cds_1.default.ApplicationService {
     init() {
-        this.after("READ", "Contracts", (contracts) => {
+        this.after("READ", this.entities.Contracts, (contracts) => {
             return contracts;
         });
-        this.on("calculateRecognitions", "Contracts", (req) => __awaiter(this, void 0, void 0, function* () {
-            let dataset = yield deepRead.call(this, req.data.contractID);
-            console.log(req);
-            console.log(dataset);
-            const contracts = new TableModule(dataset);
+        this.on("calculateRecognitions", this.entities.Contracts, (req) => __awaiter(this, void 0, void 0, function* () {
+            const contracts = new Contracts(yield deepRead.call(this, req.data.contractID));
             contracts.calculateRecognitions(req.data.contractID);
-            yield deepUpsert.call(this, contracts.contracts);
+            yield deepUpdate.call(this, contracts.contracts);
         }));
         return super.init();
     }
@@ -103,7 +116,7 @@ function deepRead(contractID) {
         return yield SELECT.from(this.entities.Contracts, (o) => {
             o.ID,
                 o.whenSigned,
-                o.Amount,
+                o.amount,
                 o.product((p) => {
                     p.ID, p.name;
                     p.type;
@@ -114,12 +127,10 @@ function deepRead(contractID) {
         }).where({ ID: contractID });
     });
 }
-function deepUpsert(contracts) {
+function deepUpdate(contracts) {
     return __awaiter(this, void 0, void 0, function* () {
         for (let aContract of contracts) {
-            yield this.update(this.entities.Contracts, aContract.ID)
-                .set(aContract);
+            yield this.update(this.entities.Contracts, aContract.ID).set(aContract);
         }
-        console.log(yield deepRead.call(this, contracts[0].ID));
     });
 }

@@ -7,9 +7,9 @@ entity Products {
 }
 
 entity Contracts {
-  key ID : UUID;
+  key ID : Integer;
   whenSigned : Date;
-  Amount : Decimal;
+  amount : Decimal;
   product : Association to Products;
   revenueRecognitions : Composition of many RevenueRecognitions on revenueRecognitions.contract = $self;
 }
