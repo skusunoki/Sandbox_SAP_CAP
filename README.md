@@ -412,19 +412,19 @@ CDSで定義したサービスと同名のクラスを定義。`cds.ApplicationS
 ```typescript: srv/service.ts
 export class RevenueCalculationService extends cds.ApplicationService {
   init() {
-    this.on("calculateRecognitions",
-    this.entities.Contracts, 
-    async (req: cds.Request) => {
-        const contracts = new Contracts(
-          await deepRead.call(this, req.data.contractID),
-        );
-        contracts.calculateRecognitions(req.data.contractID);
-        await deepUpdate.call(this, contracts.contracts);
-      },
-    );
     this.after("READ", this.entities.Contracts, (contracts: Contract[]) => {
       return contracts;
     });
+    this.on("calculateRecognitions", this.entities.Contracts, async (req: cds.Request) => {
+        assert (req.params !== undefined)
+        const [ IdOfContract ] = req.params;
+        const contracts = new Contracts(
+          await deepRead.call(this, Number(IdOfContract))
+        );
+        contracts.calculateRecognitions(Number(IdOfContract));
+        await deepUpdate.call(this, contracts.contracts);
+      },
+    );
 
     return super.init();
   }
@@ -443,7 +443,7 @@ SQLを分離するために、別途関数を定義した。PoEAAとの対応関
 ```typescript: srv/service.ts
 async function deepRead(
   this: RevenueCalculationService,
-  contractID: string,
+  contractID: number,
 ): Promise<Contract[]> {
   return await SELECT.from(this.entities.Contracts, (o: any) => {
     o.ID,
@@ -502,10 +502,9 @@ describe("Contracts", () => {
 
 /* .. */
 
-it("should allow to run action : calculateRecognitions", async () => {
+  it("should allow to run action : calculateRecognitions", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation/Contracts(2)/calculateRecognitions",
-      { contractID: 2 },
+      "/odata/v4/revenue-calculation/Contracts(2)/calculateRecognitions"
     );
     const { data } = await test.get(
       "/odata/v4/revenue-calculation/Contracts(2)?$expand=revenueRecognitions",

@@ -80,7 +80,7 @@ class Contracts {
         const lowResult = Math.floor((amount / by) * 100) / 100;
         const highResult = lowResult + 0.01;
         const result = [];
-        let remainder = amount % by;
+        let remainder = (amount * 100) % by;
         for (let i = 0; i < by; i++) {
             result.push(i < remainder ? highResult : lowResult);
         }
@@ -103,8 +103,10 @@ class RevenueCalculationService extends cds_1.default.ApplicationService {
             return contracts;
         });
         this.on("calculateRecognitions", this.entities.Contracts, (req) => __awaiter(this, void 0, void 0, function* () {
-            const contracts = new Contracts(yield deepRead.call(this, req.data.contractID));
-            contracts.calculateRecognitions(req.data.contractID);
+            (0, power_assert_1.default)(req.params !== undefined);
+            const [IdOfContract] = req.params;
+            const contracts = new Contracts(yield deepRead.call(this, Number(IdOfContract)));
+            contracts.calculateRecognitions(Number(IdOfContract));
             yield deepUpdate.call(this, contracts.contracts);
         }));
         return super.init();

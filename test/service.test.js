@@ -78,7 +78,7 @@ describe("Contracts", () => {
         ]);
     }));
     it("should allow to run action : calculateRecognitions", () => __awaiter(void 0, void 0, void 0, function* () {
-        yield test.post("/odata/v4/revenue-calculation/Contracts(1)/calculateRecognitions", { contractID: 1 });
+        yield test.post("/odata/v4/revenue-calculation/Contracts(1)/calculateRecognitions");
         const { data } = yield test.get("/odata/v4/revenue-calculation/Contracts(1)?$expand=revenueRecognitions");
         expect(data.revenueRecognitions.length).toEqual(1);
         expect(data.revenueRecognitions[0].amount).toEqual(100);
@@ -86,7 +86,7 @@ describe("Contracts", () => {
         expect(data.revenueRecognitions[0].date).toEqual("2016-01-01");
     }));
     it("should allow to run action : calculateRecognitions", () => __awaiter(void 0, void 0, void 0, function* () {
-        yield test.post("/odata/v4/revenue-calculation/Contracts(2)/calculateRecognitions", { contractID: 2 });
+        yield test.post("/odata/v4/revenue-calculation/Contracts(2)/calculateRecognitions");
         const { data } = yield test.get("/odata/v4/revenue-calculation/Contracts(2)?$expand=revenueRecognitions");
         expect(data.revenueRecognitions.length).toEqual(3);
         expect(data.revenueRecognitions[0].amount).toEqual(66.67);

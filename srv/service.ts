@@ -114,14 +114,16 @@ export class Contracts {
 
 export class RevenueCalculationService extends cds.ApplicationService {
   init() {
-    this.on(
-      "calculateRecognitions",
-      this.entities.Contracts,
-      async (req: cds.Request) => {
+    this.after("READ", this.entities.Contracts, (contracts: Contract[]) => {
+      return contracts;
+    });
+    this.on("calculateRecognitions", this.entities.Contracts, async (req: cds.Request) => {
+        assert (req.params !== undefined)
+        const [ IdOfContract ] = req.params;
         const contracts = new Contracts(
-          await deepRead.call(this, req.data.contractID),
+          await deepRead.call(this, Number(IdOfContract))
         );
-        contracts.calculateRecognitions(req.data.contractID);
+        contracts.calculateRecognitions(Number(IdOfContract));
         await deepUpdate.call(this, contracts.contracts);
       },
     );
@@ -132,7 +134,7 @@ export class RevenueCalculationService extends cds.ApplicationService {
 
 async function deepRead(
   this: RevenueCalculationService,
-  contractID: string,
+  contractID: number,
 ): Promise<Contract[]> {
   return await SELECT.from(this.entities.Contracts, (o: any) => {
     o.ID,

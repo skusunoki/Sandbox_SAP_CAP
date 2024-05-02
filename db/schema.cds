@@ -19,5 +19,5 @@ entity RevenueRecognitions {
     amount : Decimal;
     date : Date;
     contract : Association to Contracts;
-  }
+}
 

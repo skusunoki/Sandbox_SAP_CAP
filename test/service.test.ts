@@ -53,8 +53,7 @@ describe("Contracts", () => {
 
   it("should allow to run action : calculateRecognitions", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation/Contracts(1)/calculateRecognitions",
-      { contractID: 1 },
+      "/odata/v4/revenue-calculation/Contracts(1)/calculateRecognitions"
     );
     const { data } = await test.get(
       "/odata/v4/revenue-calculation/Contracts(1)?$expand=revenueRecognitions",
@@ -67,8 +66,7 @@ describe("Contracts", () => {
 
   it("should allow to run action : calculateRecognitions", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation/Contracts(2)/calculateRecognitions",
-      { contractID: 2 },
+      "/odata/v4/revenue-calculation/Contracts(2)/calculateRecognitions"
     );
     const { data } = await test.get(
       "/odata/v4/revenue-calculation/Contracts(2)?$expand=revenueRecognitions",
