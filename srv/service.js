@@ -109,6 +109,13 @@ class RevenueCalculationService extends cds_1.default.ApplicationService {
             contracts.calculateRecognitions(Number(IdOfContract));
             yield deepUpdate.call(this, contracts.contracts);
         }));
+        this.on("calculateRecognitions", (req) => __awaiter(this, void 0, void 0, function* () {
+            (0, power_assert_1.default)(req.data !== undefined);
+            const IdOfContract = req.data.contractID;
+            const contracts = new Contracts(yield deepRead.call(this, Number(IdOfContract)));
+            contracts.calculateRecognitions(Number(IdOfContract));
+            yield deepUpdate.call(this, contracts.contracts);
+        }));
         return super.init();
     }
 }

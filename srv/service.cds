@@ -5,4 +5,5 @@ service RevenueCalculationService {
     actions {
             action calculateRecognitions() ;
     }
+    action calculateRecognitions(contractID: Integer);
 }
