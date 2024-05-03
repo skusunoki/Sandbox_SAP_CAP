@@ -28,7 +28,7 @@ export class Contracts {
     this._dataset = _dataset;
     this._index = 0;
   }
-  calculateRecognitions(contractID: number): void {
+  public calculateRecognitions(contractID: number): void {
     this._index = this._dataset.findIndex(
       (contract) => contract.ID == contractID,
     );
@@ -85,13 +85,13 @@ export class Contracts {
       assert(false, "Product type is not defined");
     }
   }
-  get contracts(): Contract[] {
+  public get contracts(): Contract[] {
     return this._dataset;
   }
-  set contracts(contracts: Contract[]) {
+  public set contracts(contracts: Contract[]) {
     this._dataset = contracts;
   }
-  allocate_amount(amount: number, by: number): number[] {
+  private allocate_amount(amount: number, by: number): number[] {
     const lowResult = Math.floor((amount / by) * 100) / 100;
     const highResult = lowResult + 0.01;
     const result = [];
@@ -101,10 +101,10 @@ export class Contracts {
     }
     return result;
   }
-  allocate_date(date: Date, by: number) {
+  private allocate_date(date: Date, by: number): string[] {
     let rr_date = [];
     for (let i = 0; i < by; i++) {
-      let rr_date_base = date;
+      let rr_date_base = new Date(date);
       rr_date_base.setDate(rr_date_base.getDate() + i * 30);
       rr_date.push(rr_date_base.toISOString().split("T")[0]);
     }
@@ -125,15 +125,9 @@ export class RevenueCalculationService extends cds.ApplicationService {
         );
         contracts.calculateRecognitions(Number(IdOfContract));
         await deepUpdate.call(this, contracts.contracts);
-    });
-    this.on("calculateRecognitions", async( req: cds.Request) => {
-      assert (req.data !== undefined)
-      const contracts = new Contracts(
-        await deepRead.call(this, req.data.contractID )
-      );
-      contracts.calculateRecognitions(req.data.contractID);
-      await deepUpdate.call(this, contracts.contracts);
-    });
+      },
+    );
+
     return super.init();
   }
 }

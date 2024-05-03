@@ -97,9 +97,9 @@ describe("Contracts", () => {
         expect(data.revenueRecognitions[2].contract_ID).toEqual(2);
         expect(data.revenueRecognitions[0].date).toEqual("2016-02-01");
         expect(data.revenueRecognitions[1].date).toEqual("2016-03-02");
-        expect(data.revenueRecognitions[2].date).toEqual("2016-05-01");
+        expect(data.revenueRecognitions[2].date).toEqual("2016-04-01");
     }));
-    it("should allow to run action : calculateRecognitions", () => __awaiter(void 0, void 0, void 0, function* () {
+    it("should allow to run unbound action : calculateRecognitions", () => __awaiter(void 0, void 0, void 0, function* () {
         yield test.post("/odata/v4/revenue-calculation/calculateRecognitions", { contractID: 2 });
         const { data } = yield test.get("/odata/v4/revenue-calculation/Contracts(2)?$expand=revenueRecognitions");
         expect(data.revenueRecognitions.length).toEqual(3);
@@ -111,6 +111,21 @@ describe("Contracts", () => {
         expect(data.revenueRecognitions[2].contract_ID).toEqual(2);
         expect(data.revenueRecognitions[0].date).toEqual("2016-02-01");
         expect(data.revenueRecognitions[1].date).toEqual("2016-03-02");
-        expect(data.revenueRecognitions[2].date).toEqual("2016-05-01");
+        expect(data.revenueRecognitions[2].date).toEqual("2016-04-01");
+    }));
+    it("should allow to post : Contracts", () => __awaiter(void 0, void 0, void 0, function* () {
+        yield test.post("/odata/v4/revenue-calculation/Contracts", { ID: 3, whenSigned: "2024-04-01", amount: 400, product_ID: 2, revenueRecognitions: [] });
+        yield test.post("/odata/v4/revenue-calculation/Contracts(3)/calculateRecognitions");
+        const { data } = yield test.get("/odata/v4/revenue-calculation/Contracts(3)?$expand=revenueRecognitions");
+        expect(data.revenueRecognitions.length).toEqual(3);
+        expect(data.revenueRecognitions[0].amount).toEqual(133.34);
+        expect(data.revenueRecognitions[1].amount).toEqual(133.33);
+        expect(data.revenueRecognitions[2].amount).toEqual(133.33);
+        expect(data.revenueRecognitions[0].contract_ID).toEqual(3);
+        expect(data.revenueRecognitions[1].contract_ID).toEqual(3);
+        expect(data.revenueRecognitions[2].contract_ID).toEqual(3);
+        expect(data.revenueRecognitions[0].date).toEqual("2024-04-01");
+        expect(data.revenueRecognitions[1].date).toEqual("2024-05-01");
+        expect(data.revenueRecognitions[2].date).toEqual("2024-05-31");
     }));
 });
