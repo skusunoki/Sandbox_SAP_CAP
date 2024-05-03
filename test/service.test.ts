@@ -82,4 +82,26 @@ describe("Contracts", () => {
     expect(data.revenueRecognitions[1].date).toEqual("2016-03-02");
     expect(data.revenueRecognitions[2].date).toEqual("2016-05-01");
   });
+
+  it("should allow to run action : calculateRecognitions", async () => {
+    await test.post(
+      "/odata/v4/revenue-calculation/calculateRecognitions",
+      { contractID: 2 }
+    );
+    const { data } = await test.get(
+      "/odata/v4/revenue-calculation/Contracts(2)?$expand=revenueRecognitions",
+    );
+    expect(data.revenueRecognitions.length).toEqual(3);
+    expect(data.revenueRecognitions[0].amount).toEqual(66.67);
+    expect(data.revenueRecognitions[1].amount).toEqual(66.67);
+    expect(data.revenueRecognitions[2].amount).toEqual(66.66);
+    expect(data.revenueRecognitions[0].contract_ID).toEqual(2);
+    expect(data.revenueRecognitions[1].contract_ID).toEqual(2);
+    expect(data.revenueRecognitions[2].contract_ID).toEqual(2);
+    expect(data.revenueRecognitions[0].date).toEqual("2016-02-01");
+    expect(data.revenueRecognitions[1].date).toEqual("2016-03-02");
+    expect(data.revenueRecognitions[2].date).toEqual("2016-05-01");
+  });
+
+  
 });

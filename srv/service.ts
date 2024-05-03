@@ -125,9 +125,15 @@ export class RevenueCalculationService extends cds.ApplicationService {
         );
         contracts.calculateRecognitions(Number(IdOfContract));
         await deepUpdate.call(this, contracts.contracts);
-      },
-    );
-
+    });
+    this.on("calculateRecognitions", async( req: cds.Request) => {
+      assert (req.data !== undefined)
+      const contracts = new Contracts(
+        await deepRead.call(this, req.data.contractID )
+      );
+      contracts.calculateRecognitions(req.data.contractID);
+      await deepUpdate.call(this, contracts.contracts);
+    });
     return super.init();
   }
 }
