@@ -14,6 +14,9 @@ class Currency {
   public getDefaultFractionDigits(): number {
     return this._fractionDigits;
   }
+  public get code(): string {
+    return this._code;
+  }
 }
 
 class Money {
@@ -317,9 +320,9 @@ export class ContractRepository {
 
 export class RevenueCalculationServiceDM extends cds.ApplicationService {
   init() {
-    // this.after("READ", this.entities.Contracts, (contracts: Contract[]) => {
-    //   return contracts;
-    // });
+    this.after("READ", this.entities.Contracts, (contracts: Contract[]) => {
+       return contracts;
+    });
     this.on(
       "calculateRecognitions",
       this.entities.Contracts,
@@ -337,10 +340,10 @@ export class RevenueCalculationServiceDM extends cds.ApplicationService {
     this.on("calculateRecognitions", async (req: cds.Request) => {
       assert(req.data !== undefined);
       const IdOfContract = req.data.contractID;
-      const contracts = new ContractRepository(this);
-      const aContract = await contracts.read(Number(IdOfContract));
+      const repository = new ContractRepository(this);
+      const aContract = await repository.read(Number(IdOfContract));
       aContract.calculateRecognitions();
-      await contracts.write(aContract);
+      await repository.write(aContract);
     });
     return super.init();
   }
