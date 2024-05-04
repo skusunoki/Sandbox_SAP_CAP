@@ -118,26 +118,28 @@ export class RevenueCalculationServiceTM extends cds.ApplicationService {
     this.after("READ", this.entities.Contracts, (contracts: Contract[]) => {
       return contracts;
     });
-    this.on("calculateRecognitions", this.entities.Contracts, async (req: cds.Request) => {
-        assert (req.params !== undefined)
-        const [ IdOfContract ] = req.params;
+    this.on(
+      "calculateRecognitions",
+      this.entities.Contracts,
+      async (req: cds.Request) => {
+        assert(req.params !== undefined);
+        const [IdOfContract] = req.params;
         const contracts = new Contracts(
-          await deepRead.call(this, Number(IdOfContract))
+          await deepRead.call(this, Number(IdOfContract)),
         );
         contracts.calculateRecognitions(Number(IdOfContract));
         await deepUpdate.call(this, contracts.contracts);
       },
     );
     this.on("calculateRecognitions", async (req: cds.Request) => {
-      assert (req.data !== undefined)
+      assert(req.data !== undefined);
       const IdOfContract = req.data.contractID;
       const contracts = new Contracts(
-        await deepRead.call(this, Number(IdOfContract))
+        await deepRead.call(this, Number(IdOfContract)),
       );
       contracts.calculateRecognitions(Number(IdOfContract));
       await deepUpdate.call(this, contracts.contracts);
-    },
-  );
+    });
     return super.init();
   }
 }

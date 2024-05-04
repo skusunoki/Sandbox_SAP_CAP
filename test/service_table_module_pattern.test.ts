@@ -52,7 +52,7 @@ describe("Contracts", () => {
 
   it("should allow to run action : calculateRecognitions", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(1)/calculateRecognitions"
+      "/odata/v4/revenue-calculation-service-tm/Contracts(1)/calculateRecognitions",
     );
     const { data } = await test.get(
       "/odata/v4/revenue-calculation-service-tm/Contracts(1)?$expand=revenueRecognitions",
@@ -65,7 +65,7 @@ describe("Contracts", () => {
 
   it("should allow to run action : calculateRecognitions", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(2)/calculateRecognitions"
+      "/odata/v4/revenue-calculation-service-tm/Contracts(2)/calculateRecognitions",
     );
     const { data } = await test.get(
       "/odata/v4/revenue-calculation-service-tm/Contracts(2)?$expand=revenueRecognitions",
@@ -85,7 +85,7 @@ describe("Contracts", () => {
   it("should allow to run unbound action : calculateRecognitions", async () => {
     await test.post(
       "/odata/v4/revenue-calculation-service-tm/calculateRecognitions",
-      { contractID: 2 }
+      { contractID: 2 },
     );
     const { data } = await test.get(
       "/odata/v4/revenue-calculation-service-tm/Contracts(2)?$expand=revenueRecognitions",
@@ -102,14 +102,16 @@ describe("Contracts", () => {
     expect(data.revenueRecognitions[2].date).toEqual("2016-04-01");
   });
 
-
   it("should allow to post : Contracts", async () => {
+    await test.post("/odata/v4/revenue-calculation-service-tm/Contracts", {
+      ID: 3,
+      whenSigned: "2024-04-01",
+      amount: 400,
+      product_ID: 2,
+      revenueRecognitions: [],
+    });
     await test.post(
-      "/odata/v4/revenue-calculation-service-tm/Contracts",
-      { ID : 3, whenSigned : "2024-04-01", amount : 400, product_ID: 2, revenueRecognitions : [] }
-    );
-    await test.post(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(3)/calculateRecognitions"
+      "/odata/v4/revenue-calculation-service-tm/Contracts(3)/calculateRecognitions",
     );
     const { data } = await test.get(
       "/odata/v4/revenue-calculation-service-tm/Contracts(3)?$expand=revenueRecognitions",
@@ -125,5 +127,4 @@ describe("Contracts", () => {
     expect(data.revenueRecognitions[1].date).toEqual("2024-05-01");
     expect(data.revenueRecognitions[2].date).toEqual("2024-05-31");
   });
-  
 });
