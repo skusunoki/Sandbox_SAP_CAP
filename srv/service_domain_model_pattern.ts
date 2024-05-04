@@ -1,95 +1,71 @@
 import cds from "@sap/cds";
 import assert from "power-assert";
 
-type Contract = {
-  ID: number;
-  whenSigned: string;
-  amount: number;
-  product: Product | undefined;
-  revenueRecognitions: RevenueRecognition[] | undefined;
-};
+class Product {
+  private _ID: number;
+  private _name: string;
+  private _type: string;
+  private _recognitionStrategy: RecognitionsStrategy;
 
-type Product = {
-  ID: number;
-  name: string;
-  type: string;
-};
-
-type RevenueRecognition = {
-  items: string;
-  amount: number;
-  date: string;
-  contract_ID: number;
-};
-
-export class Contracts {
-  private _index: number;
-  constructor(private _dataset: Contract[]) {
-    this._dataset = _dataset;
-    this._index = 0;
+  constructor(ID: number, name: string, type: string, recognitionStrategy: RecognitionsStrategy) {
+    this._ID = ID;
+    this._name = name;
+    this._type = type;
+    this._recognitionStrategy = recognitionStrategy;
   }
-  public calculateRecognitions(contractID: number): void {
-    this._index = this._dataset.findIndex(
-      (contract) => contract.ID == contractID,
-    );
-    const contractRow = this._dataset[this._index];
-
-    if (contractRow === undefined) return;
-    if (contractRow.product === undefined) return;
-    if (contractRow.amount === undefined) return;
-
-    const amount = contractRow.amount;
-    const product = contractRow.product;
-
-    if (contractRow.product.type === "WP") {
-      let rr: RevenueRecognition[] = [];
-      rr.push({
-        items: cds.utils.uuid(),
-        amount: amount,
-        date: contractRow.whenSigned,
-        contract_ID: contractRow.ID,
-      });
-      this._dataset[this._index].revenueRecognitions = [...rr];
-    }
-
-    if (contractRow.product.type === "SS") {
-      let rr: RevenueRecognition[] = [];
-      const alloc_amount = this.allocate_amount(amount, 3);
-      const alloc_date = this.allocate_date(
-        new Date(contractRow?.whenSigned),
-        3,
-      );
-
-      rr.push({
-        items: cds.utils.uuid(),
-        amount: alloc_amount[0],
-        date: alloc_date[0],
-        contract_ID: contractRow?.ID,
-      });
-      rr.push({
-        items: cds.utils.uuid(),
-        amount: alloc_amount[1],
-        date: alloc_date[1],
-        contract_ID: contractRow?.ID,
-      });
-      rr.push({
-        items: cds.utils.uuid(),
-        amount: alloc_amount[2],
-        date: alloc_date[2],
-        contract_ID: contractRow?.ID,
-      });
-      this._dataset[this._index].revenueRecognitions = [...rr];
-    }
-
-    if (product?.type === undefined) {
-      assert(false, "Product type is not defined");
-    }
+  public calculateRecognitions(contract: Contract): RevenueRecognition[] {
+    return this._recognitionStrategy.calculateRecognitions(contract);
   }
-  public get contracts(): Contract[] {
-    return this._dataset;
+  public static factoryWordProcessor(): Product {
+    return new Product(1, "Word Processor", "WP", new CompletedRecognitionsStrategy());
   }
-  public set contracts(contracts: Contract[]) {
-    this._dataset = contracts;
+  public static factorySpreadsheet(): Product {
+    return new Product(2, "Spreadsheet", "SS", new ThreeWayRecognitionsStrategy(30, 60));
+  }
+  public static factoryUndefinedProduct(): Product {
+    throw new Error("Product type is not defined");
+  }
+  public static factoryProduct(type: "WP" | "SS" | undefined ): Product {
+    return type === "WP" ? Product.factoryWordProcessor() : type === "SS" ? Product.factorySpreadsheet() : Product.factoryUndefinedProduct();
+  }
+  get type(): string {
+    return this._type;
+  }
+  get ID(): number {
+    return this._ID;
+  }
+  get name(): string {
+    return this._name;
+  }
+}
+
+interface RecognitionsStrategy {
+  calculateRecognitions(contract: Contract): RevenueRecognition[] 
+}
+
+class CompletedRecognitionsStrategy implements RecognitionsStrategy {
+  calculateRecognitions(contract: Contract): RevenueRecognition[] {
+    return [new RevenueRecognition(contract.amount, contract.whenSigned)]
+  }
+}
+
+class ThreeWayRecognitionsStrategy implements RecognitionsStrategy {
+  private _firstRecognitionOffset: number;
+  private _secondRecognitionOffset: number;
+
+  constructor(firstRecognitionOffset: number, secondRecognitionOffset: number) {
+    this._firstRecognitionOffset = firstRecognitionOffset;
+    this._secondRecognitionOffset = secondRecognitionOffset;
+  }
+  calculateRecognitions(contract: Contract): RevenueRecognition[] {
+    let rr: RevenueRecognition[] = [];
+    const alloc_amount = this.allocate_amount(contract.amount, 3);
+
+    return [
+      new RevenueRecognition(alloc_amount[0], this.offsetDate(contract.whenSigned, 0)),
+      new RevenueRecognition(alloc_amount[1], this.offsetDate(contract.whenSigned, this._firstRecognitionOffset)),
+      new RevenueRecognition(alloc_amount[2], this.offsetDate(contract.whenSigned, this._secondRecognitionOffset))
+    ];
   }
   private allocate_amount(amount: number, by: number): number[] {
     const lowResult = Math.floor((amount / by) * 100) / 100;
@@ -101,14 +77,99 @@ export class Contracts {
     }
     return result;
   }
-  private allocate_date(date: Date, by: number): string[] {
-    let rr_date = [];
-    for (let i = 0; i < by; i++) {
-      let rr_date_base = new Date(date);
-      rr_date_base.setDate(rr_date_base.getDate() + i * 30);
-      rr_date.push(rr_date_base.toISOString().split("T")[0]);
-    }
-    return rr_date;
+  private offsetDate(baseDate: string, offsetDate: number): string {
+    let rr_date_base = new Date(baseDate);
+    rr_date_base.setDate(rr_date_base.getDate() + offsetDate);
+    return rr_date_base.toISOString().split("T")[0];
+  }
+}
+
+class RevenueRecognition {
+  private _amount: number;
+  private _date: string;
+  constructor(amount: number, date: string) {
+    this._amount = amount;
+    this._date = date;
+  }
+  get amount(): number {
+    return this._amount;
+  }
+  get date(): string {
+    return this._date;
+  }
+}
+
+class Contract {
+  private _ID: number;
+  private _whenSigned: string;
+  private _amount: number;
+  private _product: Product;
+  private _revenueRecognitions: RevenueRecognition[] | undefined;
+  constructor( ID: number, whenSigned: string, amount: number, product: Product, revenueRecognitions: RevenueRecognition[] | undefined) {
+    this._ID = ID;
+    this._whenSigned = whenSigned;
+    this._amount = amount;
+    this._product = product;
+    this._revenueRecognitions = revenueRecognitions;
+  }
+  public calculateRecognitions(): void {
+      let rr = this.product.calculateRecognitions(this);
+      this._revenueRecognitions = [...rr];
+  }
+  public get ID() {
+    return this._ID;
+  }
+  get whenSigned(): string {
+    return this._whenSigned;
+  }
+  get amount(): number {
+    return this._amount;
+  }
+  get product(): Product {
+    return this._product;
+  }
+  get revenueRecognitions(): RevenueRecognition[] | undefined{
+    return this._revenueRecognitions;
+  }
+}
+
+export class ContractRepository {
+  private srv: RevenueCalculationServiceDM;
+  constructor( srv: RevenueCalculationServiceDM ) {
+    this.srv = srv;
+  }
+  public async read(contractID: number): Promise<Contract> {
+    const dataset = await SELECT.from(this.srv.entities.Contracts)
+    .where({ ID: contractID })
+    .columns( (o: any) => {
+      o.ID,
+        o.whenSigned,
+        o.amount,
+        o.product((p: any) => {
+          p.type;
+        }),
+        o.revenueRecognitions((r: any) => {
+          r.items, r.amount, r.date, r.contract_ID;
+        });
+    });
+    return new Contract(
+      dataset[0].ID,
+      dataset[0].whenSigned,
+      dataset[0].amount,
+      Product.factoryProduct(dataset[0].product.type),
+      dataset[0].revenueRecognitions.map((r: any) => new RevenueRecognition(r.amount, r.date))
+    );
+  }
+
+  public async write( contract: Contract): Promise<void> {
+    let rr = contract.revenueRecognitions?.map((r) => { return {items: cds.utils.uuid(), amount: r.amount, date: r.date, contract_ID: contract.ID} } );
+    await this.srv.update(this.srv.entities.Contracts, contract.ID).set({
+      ID: contract.ID,
+      whenSigned: contract.whenSigned,
+      amount: contract.amount,
+      product: {ID: contract.product.ID, name: contract.product.name, type: contract.product.type},
+      revenueRecognitions: rr
+    });
   }
 }
 
@@ -120,50 +181,22 @@ export class RevenueCalculationServiceDM extends cds.ApplicationService {
     this.on("calculateRecognitions", this.entities.Contracts, async (req: cds.Request) => {
         assert (req.params !== undefined)
         const [ IdOfContract ] = req.params;
-        const contracts = new Contracts(
-          await deepRead.call(this, Number(IdOfContract))
-        );
-        contracts.calculateRecognitions(Number(IdOfContract));
-        await deepUpdate.call(this, contracts.contracts);
+        const repository = new ContractRepository(this)
+        const aContract = await repository.read(Number(IdOfContract));
+        console.log (aContract);
+        aContract.calculateRecognitions();
+        await repository.write(aContract);
       },
     );
     this.on("calculateRecognitions", async (req: cds.Request) => {
       assert (req.data !== undefined)
       const IdOfContract = req.data.contractID;
-      const contracts = new Contracts(
-        await deepRead.call(this, Number(IdOfContract))
-      );
-      contracts.calculateRecognitions(Number(IdOfContract));
-      await deepUpdate.call(this, contracts.contracts);
+      const contracts = new ContractRepository(this)
+      const aContract = await contracts.read(Number(IdOfContract));
+      aContract.calculateRecognitions();
+      await contracts.write(aContract);
     },
   );
     return super.init();
-  }
-}
-
-async function deepRead(
-  this: RevenueCalculationServiceDM,
-  contractID: number,
-): Promise<Contract[]> {
-  return await SELECT.from(this.entities.Contracts, (o: any) => {
-    o.ID,
-      o.whenSigned,
-      o.amount,
-      o.product((p: any) => {
-        p.ID, p.name;
-        p.type;
-      }),
-      o.revenueRecognitions((r: any) => {
-        r.items, r.amount, r.date, r.contract_ID;
-      });
-  }).where({ ID: contractID });
-}
-
-async function deepUpdate(
-  this: RevenueCalculationServiceDM,
-  contracts: Contract[],
-): Promise<void> {
-  for (let aContract of contracts) {
-    await this.update(this.entities.Contracts, aContract.ID).set(aContract);
   }
 }

@@ -1,5 +1,5 @@
 import * as cds from "@sap/cds";
-import { Contracts, RevenueCalculationServiceDM } from "../srv/service_domain_model_pattern";
+
 
 describe("Contracts", () => {
   const test = cds.test(cds.root);
