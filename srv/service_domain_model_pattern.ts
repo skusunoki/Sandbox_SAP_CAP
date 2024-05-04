@@ -112,9 +112,8 @@ export class Contracts {
   }
 }
 
-export class RevenueCalculationServiceTM extends cds.ApplicationService {
+export class RevenueCalculationServiceDM extends cds.ApplicationService {
   init() {
-    console.log("this.entities", this.entities("tmp"));
     this.after("READ", this.entities.Contracts, (contracts: Contract[]) => {
       return contracts;
     });
@@ -143,7 +142,7 @@ export class RevenueCalculationServiceTM extends cds.ApplicationService {
 }
 
 async function deepRead(
-  this: RevenueCalculationServiceTM,
+  this: RevenueCalculationServiceDM,
   contractID: number,
 ): Promise<Contract[]> {
   return await SELECT.from(this.entities.Contracts, (o: any) => {
@@ -161,7 +160,7 @@ async function deepRead(
 }
 
 async function deepUpdate(
-  this: RevenueCalculationServiceTM,
+  this: RevenueCalculationServiceDM,
   contracts: Contract[],
 ): Promise<void> {
   for (let aContract of contracts) {

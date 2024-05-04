@@ -1,5 +1,5 @@
 import * as cds from "@sap/cds";
-import { Contracts, RevenueCalculationServiceTM } from "../srv/service_table_module_pattern";
+import { Contracts, RevenueCalculationServiceDM } from "../srv/service_domain_model_pattern";
 
 describe("Contracts", () => {
   const test = cds.test(cds.root);
@@ -12,7 +12,7 @@ describe("Contracts", () => {
   });
 
   it("should return a revenue recognitions", async () => {
-    const srv = await cds.connect.to("RevenueCalculationServiceTM");
+    const srv = await cds.connect.to("RevenueCalculationServiceDM");
     const recordset = await srv.run(
       SELECT.from(srv.entities.Contracts, (o: any) => {
         o.ID,
@@ -53,10 +53,10 @@ describe("Contracts", () => {
 
   it("should allow to run action : calculateRecognitions", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(1)/calculateRecognitions"
+      "/odata/v4/revenue-calculation-service-dm/Contracts(1)/calculateRecognitions"
     );
     const { data } = await test.get(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(1)?$expand=revenueRecognitions",
+      "/odata/v4/revenue-calculation-service-dm/Contracts(1)?$expand=revenueRecognitions",
     );
     expect(data.revenueRecognitions.length).toEqual(1);
     expect(data.revenueRecognitions[0].amount).toEqual(100);
@@ -66,10 +66,10 @@ describe("Contracts", () => {
 
   it("should allow to run action : calculateRecognitions", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(2)/calculateRecognitions"
+      "/odata/v4/revenue-calculation-service-dm/Contracts(2)/calculateRecognitions"
     );
     const { data } = await test.get(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(2)?$expand=revenueRecognitions",
+      "/odata/v4/revenue-calculation-service-dm/Contracts(2)?$expand=revenueRecognitions",
     );
     expect(data.revenueRecognitions.length).toEqual(3);
     expect(data.revenueRecognitions[0].amount).toEqual(66.67);
@@ -85,11 +85,11 @@ describe("Contracts", () => {
 
   it("should allow to run unbound action : calculateRecognitions", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation-service-tm/calculateRecognitions",
+      "/odata/v4/revenue-calculation-service-dm/calculateRecognitions",
       { contractID: 2 }
     );
     const { data } = await test.get(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(2)?$expand=revenueRecognitions",
+      "/odata/v4/revenue-calculation-service-dm/Contracts(2)?$expand=revenueRecognitions",
     );
     expect(data.revenueRecognitions.length).toEqual(3);
     expect(data.revenueRecognitions[0].amount).toEqual(66.67);
@@ -106,14 +106,14 @@ describe("Contracts", () => {
 
   it("should allow to post : Contracts", async () => {
     await test.post(
-      "/odata/v4/revenue-calculation-service-tm/Contracts",
+      "/odata/v4/revenue-calculation-service-dm/Contracts",
       { ID : 3, whenSigned : "2024-04-01", amount : 400, product_ID: 2, revenueRecognitions : [] }
     );
     await test.post(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(3)/calculateRecognitions"
+      "/odata/v4/revenue-calculation-service-dm/Contracts(3)/calculateRecognitions"
     );
     const { data } = await test.get(
-      "/odata/v4/revenue-calculation-service-tm/Contracts(3)?$expand=revenueRecognitions",
+      "/odata/v4/revenue-calculation-service-dm/Contracts(3)?$expand=revenueRecognitions",
     );
     expect(data.revenueRecognitions.length).toEqual(3);
     expect(data.revenueRecognitions[0].amount).toEqual(133.34);

@@ -1,5 +1,5 @@
 using {db} from '../db/schema';
-service RevenueCalculationServiceTM {
+service RevenueCalculationServiceDM {
     entity Contracts as projection on db.Contracts 
     actions {
             action calculateRecognitions() ;
