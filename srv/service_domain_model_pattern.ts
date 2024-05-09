@@ -253,7 +253,7 @@ class Contract {
   }
   get amount(): number {
     return (
-      Number(this._amount.amount().amount_internal) / this._amount.centFactor()
+      Number(this._amount.amount().amount_internal) / this._amount.centFactor() 
     );
   }
   get product(): Product {
@@ -331,9 +331,7 @@ export class RevenueCalculationServiceDM extends cds.ApplicationService {
         const [IdOfContract] = req.params;
         const repository = new ContractRepository(this);
         const aContract = await repository.read(Number(IdOfContract));
-        console.log(aContract);
         aContract.calculateRecognitions();
-        console.log(aContract.revenueRecognitions);
         await repository.write(aContract);
       },
     );

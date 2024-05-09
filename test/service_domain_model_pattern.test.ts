@@ -77,6 +77,7 @@ describe("Contracts", () => {
     expect(data.revenueRecognitions[0].contract_ID).toEqual(2);
     expect(data.revenueRecognitions[1].contract_ID).toEqual(2);
     expect(data.revenueRecognitions[2].contract_ID).toEqual(2);
+    expect(data.amount).toEqual(200);
     expect(data.revenueRecognitions[0].date).toEqual("2016-02-01");
     expect(data.revenueRecognitions[1].date).toEqual("2016-03-02");
     expect(data.revenueRecognitions[2].date).toEqual("2016-04-01");
@@ -127,4 +128,5 @@ describe("Contracts", () => {
     expect(data.revenueRecognitions[1].date).toEqual("2024-05-01");
     expect(data.revenueRecognitions[2].date).toEqual("2024-05-31");
   });
+
 });
